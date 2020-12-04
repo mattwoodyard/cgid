@@ -22,7 +22,7 @@ pub async fn dispatcher<A>(c: Arc<Config>, r: Request<A>) -> tide::Result {
                     .await
                     .and_then(to_tide_response)
                     .or_else(|e| {
-                        println!("{}", e);
+                        println!("{:?}", e);
                         Ok(tide::Response::builder(500).build())
                     }),
                 Err(e) => Ok(tide::Response::builder(400).build()),
@@ -38,7 +38,12 @@ pub async fn dispatcher<A>(c: Arc<Config>, r: Request<A>) -> tide::Result {
     }
 }
 
-pub async fn launch(script_name: &str, request: ProcessRequest) -> Result<ProcessResponse, String> {
+//TODO(matt) - pass in config stderr to log/scriptname.log
+
+pub async fn launch(
+    script_name: &str,
+    request: ProcessRequest,
+) -> Result<ProcessResponse, CgidError> {
     println!("launch {:?}", script_name);
 
     let mut child = Command::new(script_name)
@@ -48,54 +53,31 @@ pub async fn launch(script_name: &str, request: ProcessRequest) -> Result<Proces
         // .stderr(Stdio::piped())
         .stdin(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Error launching child {:}", e))?;
+        .map_err(CgidError::Spawn)?;
 
-    let mut cstdout: ChildStdout = child
-        .stdout
-        .take()
-        .ok_or("Error getting stdout".to_string())?;
+    let mut cstdout: ChildStdout = child.stdout.take().ok_or(CgidError::NoChildStdout)?;
 
-    let mut cstdin: ChildStdin = child
-        .stdin
-        .take()
-        .ok_or("Error getting stdin".to_string())?;
+    let mut cstdin: ChildStdin = child.stdin.take().ok_or(CgidError::NoChildStdin)?;
 
     {
-        let to_child =
-            serde_json::to_vec(&request).map_err(|e| format!("Error reading: {:?}", e))?;
+        let to_child = serde_json::to_vec(&request)?;
 
         unsafe {
             println!("{}", String::from_utf8_unchecked(to_child.clone()));
         }
 
-        let _sz = cstdin
-            .write(&to_child)
-            .await
-            .map_err(|e| format!("Error writing: {:?}", e))?;
-        let _e = cstdin
-            .flush()
-            .await
-            .map_err(|e| format!("Error flushing: {:?}", e))?;
-        let _c = cstdin
-            .close()
-            .await
-            .map_err(|e| format!("Error closing: {:?}", e))?;
+        let _sz = cstdin.write(&to_child).await?;
+        let _e = cstdin.flush().await?;
+        let _c = cstdin.close().await?;
         drop(cstdin);
     }
 
-    let ec = child
-        .status()
-        .await
-        .map_err(|e| format!("Error closing: {:?}", e))?;
-    println!("{:?}", ec);
+    let ec = child.status().await?;
     let mut buf: Vec<u8> = vec![];
-    let _sz = cstdout
-        .read_to_end(&mut buf)
-        .await
-        .map_err(|e| format!("Error reading: {:?}", e))?;
+    let _sz = cstdout.read_to_end(&mut buf).await?;
     unsafe {
         println!("{:?}", String::from_utf8_unchecked(buf.clone()));
     }
 
-    serde_json::from_slice(buf.as_slice()).map_err(|e| format!("{:?}", e))
+    serde_json::from_slice(buf.as_slice()).map_err(From::from)
 }

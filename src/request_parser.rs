@@ -1,11 +1,7 @@
-use async_process::Command;
-use std::fs::{self, DirEntry};
-use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use crate::types::*;
-use tide::prelude::*;
-use tide::{Body, Request, Response, StatusCode};
+use tide::Request;
 
 pub enum ParseError {
     InvalidPath,
@@ -18,7 +14,7 @@ pub fn parse<A>(c: &Config, req: &Request<A>) -> Result<String, ParseError> {
     let rp = req.url().path();
     println!("{:?}", rp);
 
-    fs::read_dir(c.script_root.as_str())
+    std::fs::read_dir(c.script_root.as_str())
         .map_err(ParseError::IoError)?
         .map(|res| res.map(|e| e.file_name()).map_err(ParseError::IoError))
         .collect::<Result<Vec<_>, ParseError>>()?

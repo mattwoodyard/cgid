@@ -30,6 +30,10 @@ async fn main() -> tide::Result<()> {
         config.bind_port.unwrap_or(8080)
     );
 
+    tide::log::info!("listening on: {}, tls enabled: {}", bind_addr, enable_tls);
+    tide::log::info!("serving: {}", config.script_root);
+    tide::log::info!("request based auth: {:?}", config.auth_script);
+
     if enable_tls {
         let listener = TlsListener::build()
             .addrs(bind_addr)
@@ -40,14 +44,5 @@ async fn main() -> tide::Result<()> {
         app.listen(bind_addr).await?;
     }
 
-    //     app.listen(
-    //         TlsListener::build()
-    //             .addrs("localhost:8081")
-    //             .cert(c.
-    //             .key(std::env::var("TIDE_KEY_PATH").unwrap()),
-    //         )
-    //         .await?;
-    //     Ok(())
-    // }
     Ok(())
 }
