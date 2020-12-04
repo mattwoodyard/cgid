@@ -1,0 +1,18 @@
+[package]
+name = "cgid"
+version = "0.1.0"
+authors = ["Matt Woodyard <matt@mattwoodyard.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tide = "*"
+async-process = "*"
+async-std = { features = ["attributes"] }
+acme-client = "*"
+futures-lite ="*"
+serde = "*"
+serde_json = "*"
+base64 = "*"
+clap = "*"
