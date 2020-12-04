@@ -1,11 +1,29 @@
 use serde::{Deserialize, Serialize};
 use tide::http::headers::{HeaderName, HeaderValue, HeaderValues};
 use tide::{Body, Request, Response, StatusCode};
+use clap::Clap;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clap)]
+pub struct AcmeConfig {
+
+
+}
+
+#[clap(version = "1.0", author = "Matt Woodyard <matt@mattwoodyard.com>")]
+#[derive(Debug, Serialize, Deserialize, Clap)]
 pub struct Config {
     pub script_root: String,
+    #[clap(long)]
     pub auth_script: Option<String>,
+    #[clap(long)]
+    pub cert: Option<String>,
+    #[clap(long)]
+    pub priv_key: Option<String>,
+    // pub acme_config: Option<AcmeConfig>,
+    #[clap(long)]
+    pub bind_address: Option<String>,
+    #[clap(long)]
+    pub bind_port: Option<u16>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

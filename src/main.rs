@@ -1,30 +1,53 @@
-use cgid::dispatcher::*;
-use cgid::request_parser::*;
-use cgid::types::*;
 use async_std;
+use cgid::dispatcher::*;
+use cgid::types::*;
 
-use std::env::args;
 use tide::prelude::*;
-use tide::Request;
+use tide_rustls::TlsListener;
 
+use clap::Clap;
 use std::sync::Arc;
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
+    let mut app = tide::new();
 
-  let mut _arg = args();
-  _arg.next();
-  let arg = _arg.next().unwrap();
-  let config = Arc::new(Config {
-    auth_script: None,
-    script_root: arg
-  });
+    let config: Arc<Config> = Arc::new(Config::parse());
 
-  let mut app = tide::new();
+    let c1 = config.clone();
+    let c2 = config.clone();
+    app.at("/:script").post(move |r| dispatcher(c2.clone(), r));
+    app.at("/:script").get(move |r| dispatcher(c1.clone(), r));
 
-  let c2 = config.clone();
-  app.at("/:script").post(move |r| dispatcher(c2.clone(), r));
-  app.at("/:script").get(move |r| dispatcher(config.clone(), r));
-  app.listen("127.0.0.1:8081").await?;
-  Ok(())
+    let enable_tls = config.cert.is_some() && config.priv_key.is_some();
+    let bind_addr = format!(
+        "{}:{}",
+        config
+            .bind_address
+            .as_ref()
+            .map(|e| e.as_str())
+            .unwrap_or("127.0.0.1"),
+        config.bind_port.unwrap_or(8080)
+    );
+
+    if enable_tls {
+        let listener = TlsListener::build()
+            .addrs(bind_addr)
+            .cert(config.cert.clone().unwrap())
+            .key(config.priv_key.clone().unwrap());
+        app.listen(listener).await?
+    } else {
+        app.listen(bind_addr).await?;
+    }
+
+    //     app.listen(
+    //         TlsListener::build()
+    //             .addrs("localhost:8081")
+    //             .cert(c.
+    //             .key(std::env::var("TIDE_KEY_PATH").unwrap()),
+    //         )
+    //         .await?;
+    //     Ok(())
+    // }
+    Ok(())
 }
