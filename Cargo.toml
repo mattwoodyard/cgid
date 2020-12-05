@@ -16,6 +16,6 @@ futures-lite ="*"
 serde = "*"
 serde_json = "*"
 tide = "*"
-tide-rustls = { path = "tide-rustls" }
+tide-rustls = { version = "0.1.5" }
 async-tls = {version = "0.10.0" }
 rustls = { version = "0.19.0" }
