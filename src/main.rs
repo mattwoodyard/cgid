@@ -11,6 +11,7 @@ use std::sync::Arc;
 #[async_std::main]
 async fn main() -> tide::Result<()> {
     let mut app = tide::new();
+    tide::log::start();
 
     let config: Arc<Config> = Arc::new(Config::parse());
 
