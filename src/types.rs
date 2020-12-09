@@ -76,7 +76,12 @@ impl ProcessRequest {
     pub async fn from<A>(mut r: Request<A>) -> Result<ProcessRequest, CgidError> {
         let headers: Vec<(String, String)> = r
             .header_names()
-            .map(|n| (n.to_string(), r.header(n).unwrap().to_string()))
+            .map(|n| {
+                (
+                    n.to_string(),
+                    r.header(n).unwrap().iter().map(|v| v.to_string()).collect(),
+                )
+            }) //.to_string()))
             .collect();
 
         let etype = match r
@@ -128,7 +133,7 @@ pub enum CgidError {
     ExecError(u8),
     TideError(tide::Error),
     Base64(base64::DecodeError),
-    Spawn(std::io::Error)
+    Spawn(std::io::Error),
 }
 
 impl From<std::io::Error> for CgidError {
