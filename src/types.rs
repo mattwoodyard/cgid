@@ -104,13 +104,15 @@ impl ProcessRequest {
             })
         };
 
-        Ok(ProcessRequest {
+        let pr = Ok(ProcessRequest {
             method: r.method().to_string(),
             url: r.url().to_string(),
             headers,
             encoding: etype,
             body,
-        })
+        });
+        println!("{:?}", pr);
+        pr
     }
 }
 
