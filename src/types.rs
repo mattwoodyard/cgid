@@ -21,6 +21,9 @@ pub struct Config {
     pub bind_address: Option<String>,
     #[clap(long)]
     pub bind_port: Option<u16>,
+
+    #[clap(long)]
+    pub debug: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -116,7 +119,7 @@ impl ProcessRequest {
             encoding: etype,
             body,
         });
-        println!("{:?}", pr);
+        tide::log::trace!("processed request: {:?}",  pr);
         pr
     }
 }

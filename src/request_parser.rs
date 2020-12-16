@@ -12,7 +12,7 @@ pub enum ParseError {
 
 pub fn parse<A>(c: &Config, req: &Request<A>) -> Result<String, ParseError> {
     let rp = req.url().path();
-    println!("{:?}", rp);
+    tide::log::info!("parse {}", rp);
 
     std::fs::read_dir(c.script_root.as_str())
         .map_err(ParseError::IoError)?
@@ -21,7 +21,7 @@ pub fn parse<A>(c: &Config, req: &Request<A>) -> Result<String, ParseError> {
         .iter()
         .filter_map(|o| o.to_str())
         //TODO(matt) - clean this up
-        .filter(|p| (String::from("/") + *p) == rp)
+        .filter(|p| (rp.starts_with(&(String::from("/") + *p))))
         .next()
         .and_then(|sf| {
             let ts = PathBuf::from(c.script_root.clone()).join(sf);
