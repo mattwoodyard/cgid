@@ -1,0 +1,16 @@
+[package]
+name = "cgid"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "*"
+pretty_env_logger = "*"
+hyper = { version = "*", features = ["full", "server", "client", "http1", "http2"] }
+hyper-util = { version = "*", features = ["tokio", "server", "client", "http1", "http2"]}
+futures-util = {version= "*"}
+http-body-util = { version = "*"}
+tokio = { version = "*", features = ["rt", "full", "sync"] }
+tokio-util = { version = "*", features = ["rt", "full", "codec"] }
+clap =  { version = "*", features = ["derive"] }
+serde_json = { version = "*" }
